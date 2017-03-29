@@ -1,0 +1,59 @@
+diff --git a/include/trace/events/sched.h b/include/trace/events/sched.h
+index 9b90c57..39836e2 100644
+--- a/include/trace/events/sched.h
++++ b/include/trace/events/sched.h
+@@ -291,6 +291,28 @@ static inline long __trace_sched_switch_state(bool preempt, struct task_struct *
+ /*
+  * Tracepoint for exec:
+  */
++TRACE_EVENT(sched_load_change,
++
++	TP_PROTO(unsigned long load, int cpu),
++
++	TP_ARGS(load, cpu),
++
++	TP_STRUCT__entry(
++		__field(	unsigned long,		load)
++		__field(	int,		cpu)
++	),
++
++	TP_fast_assign(
++		__entry->load = load;
++		__entry->cpu = cpu;
++	),
++
++	TP_printk("load=%lu cpu=%u", __entry->load, __entry->cpu)
++);
++
++/*
++ * Tracepoint for load:
++ */
+ TRACE_EVENT(sched_process_exec,
+ 
+ 	TP_PROTO(struct task_struct *p, pid_t old_pid,
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index 6559d19..a332e6a 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -2607,7 +2607,10 @@ static inline void account_numa_dequeue(struct rq *rq, struct task_struct *p)
+ {
+ 	update_load_add(&cfs_rq->load, se->load.weight);
+ 	if (!parent_entity(se))
++    {
+ 		update_load_add(&rq_of(cfs_rq)->load, se->load.weight);
++	trace_sched_load_change(rq_of(cfs_rq)->load.weight, rq_of(cfs_rq)->cpu);
++    }
+ #ifdef CONFIG_SMP
+ 	if (entity_is_task(se)) {
+ 		struct rq *rq = rq_of(cfs_rq);
+@@ -2624,7 +2627,10 @@ static inline void account_numa_dequeue(struct rq *rq, struct task_struct *p)
+ {
+ 	update_load_sub(&cfs_rq->load, se->load.weight);
+ 	if (!parent_entity(se))
++        {
+ 		update_load_sub(&rq_of(cfs_rq)->load, se->load.weight);
++                trace_sched_load_change(rq_of(cfs_rq)->load.weight, rq_of(cfs_rq)->cpu);
++        }
+ #ifdef CONFIG_SMP
+ 	if (entity_is_task(se)) {
+ 		account_numa_dequeue(rq_of(cfs_rq), task_of(se));
