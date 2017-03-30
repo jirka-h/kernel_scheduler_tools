@@ -10,7 +10,7 @@ There are the tools to debug Linux Kernel Scheduler derived from https://github.
   * set_sp_module_record_balancing_event
   * set_sp_module_record_load_change
 
-* `invariants` - kernel patches and kernel module to verify that following scheduler invariants are not violated for high number of CPU cycles
+* `invariants` - kernel patches and kernel module to verify that following scheduler invariants are not violated for high number of CPU cycles. Systemtap can be used to automatically dump execution traces of load balancing calls that failed to balance the load. 
   * invariant 1: no idle cpu while another CPU is overloaded
   * invariant 2: Check that all threads have a similar "deficit" in runtime. NOT USED.
   * invariant 3: no useless migration
